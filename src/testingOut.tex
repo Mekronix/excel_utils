@@ -1,0 +1,55 @@
+\documentclass{article}
+\usepackage{myPackages}
+\usepackage{myFonts}
+\usepackage{luacode}
+
+\pgfplotsset{compat=1.18}
+
+\begin{luacode*}
+    scrap = require('scrap')
+    scrap.addPath('D:/OneDrive/Dokumente/UNI/WG Wien/Ausgaben WG.xlsx')
+    scrap.addPath('D:/OneDrive/Dokumente/UNI/WG Wien/Utensilien und Gegenstände.xlsx')
+\end{luacode*}
+
+\newcommand{\getCellValue}[4]{%
+\directlua{scrap.getCellValue("#1", "#2", #3, #4)}
+}
+\newcommand{\getAllPaths}{%
+\directlua{scrap.getAllPaths()}
+}
+\newcommand{\getCellValues}[8]{%
+\directlua{scrap.getCellValues("#1", "#2", #3, #4, #5, #6, "#7", "#8")}
+}
+
+% can only take in a max of 9 inputs
+\newcommand{\getCellValuesTwice}[9]{%
+    \def\argone{#1}%
+    \def\argtwo{#2}%
+    \def\argthree{#3}%
+    \def\argfour{#4}%
+    \def\argfive{#5}%
+    \def\argsix{#6}%
+    \def\argseven{#7}%
+    \def\argeight{#8}%
+    \def\argnine{#9}%
+    \getCellValuesTwiceContinued
+}
+\newcommand{\getCellValuesTwiceContinued}[3]{%
+    \directlua{scrap.getCellValuesTwice("\argone", "\argtwo", \argthree, \argfour, \argfive, \argsix, \argseven, \argeight, \argnine, #1, "#2", "#3")}
+}
+
+
+\begin{document}
+    \getAllPaths
+    \getCellValue{}{Mai 2024}{5}{"D"}
+
+    \begin{tabular}{c c c c}
+        \getCellValuesTwice{}{Juni 2024}{5}{7}{21}{8}{5}{10}{21}{11}{ & }{\\\\ \\hline}
+    \end{tabular}
+
+    \begin{tabular}{c c c c c c}
+        \getCellValues{}{}{2}{2}{20}{7}{ & }{\\\\ \\hline}
+    \end{tabular}
+
+    \getCellValues{1}{Juni 2024}{5}{5}{21}{5}{,}{,}
+\end{document}
