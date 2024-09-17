@@ -1,0 +1,64 @@
+\ProvidesPackage{excel_utils}[2024/09/13 Excel Utils for LuaTeX with luacom]
+
+\RequirePackage{luacode}
+
+\begin{luacode*}
+    excel_utils = require('excel_utils')
+\end{luacode*}
+
+\DeclareOption{noOutput}{%
+  \directlua{excel_utils.setNoOutput()}
+}
+
+\DeclareOption*{%
+  \PackageError{excel_utils}{Unknown option `\CurrentOption'}{}
+}
+
+\ProcessOptions\relax
+
+% Add a new Excel file path to the path list
+\newcommand{\addPath}[1]{%
+    \directlua{excel_utils.addPath("#1")}%
+}
+
+% Retrieve the path at a specific index
+\newcommand{\getPathAt}[1]{%
+    \directlua{tex.sprint(excel_utils.getPathAt(#1))}%
+}
+
+% Print all paths in the path list
+\newcommand{\getAllPaths}{%
+    \directlua{excel_utils.getAllPaths()}%
+}
+
+% Get the value of a specific cell
+\newcommand{\getCellValue}[3][]{%
+    \directlua{excel_utils.getCellValue("#2", #3, "#1")}%
+}
+
+\newcommand{\addTable}[5][]{%
+    \directlua{excel_utils.getCellValues("#2", #3, "#4", #5, "#1", 1)}
+}
+
+% adds plot, if only one column given, the values are going to be numerated
+\newcommand{\addPlot}[5][]{%
+    \directlua{excel_utils.getCellValues("#2", #3, "#4", #5, "#1", 2)}
+}
+
+% creates table with values of two areas
+\newcommand{\addTableTwice}[9][]{%
+    \directlua{excel_utils.getCellValuesTwice("#2", #3, "#4", #5, "#6", #7, "#8", #9, "#1", 1)}%
+}
+
+% plots values of two areas, if all fields contain values
+\newcommand{\addPlotTwice}[9][]{%
+    \directlua{excel_utils.getCellValuesTwice("#2", #3, "#4", #5, "#6", #7, "#8", #9, "#1", 2)}%
+}
+
+% makes debugging a lot easier as not closed excel files could cause errors 
+% if the output should remain invisible just do nothing
+\newcommand{\openExcelVisible}{
+    \directlua{excel_utils.setExcelVisible()}
+}
+
+\endinput
