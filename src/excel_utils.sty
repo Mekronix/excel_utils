@@ -36,27 +36,27 @@
 }
 
 % Get the value of a specific cell
-\newcommand{\getCellValue}[3][]{%
-    \directlua{excel_utils.getCellValue("#2", #3, "#1")}%
+\newcommand{\getCellValue}[2][]{%
+    \directlua{excel_utils.getCellValue("#2", "#1")}%
 }
 
-\newcommand{\addTable}[5][]{%
-    \directlua{excel_utils.getCellValues("#2", #3, "#4", #5, "#1", 1)}
+\newcommand{\addTable}[3][]{%
+    \directlua{excel_utils.getCellValues("#2", "#3", "#1", 1)}
 }
 
 % adds plot, if only one column given, the values are going to be numerated
-\newcommand{\addPlot}[5][]{%
-    \directlua{excel_utils.getCellValues("#2", #3, "#4", #5, "#1", 2)}
+\newcommand{\addPlot}[3][]{%
+    \directlua{excel_utils.getCellValues("#2", "#3", "#1", 2)}
 }
 
 % creates table with values of two areas
-\newcommand{\addTableTwice}[9][]{%
-    \directlua{excel_utils.getCellValuesTwice("#2", #3, "#4", #5, "#6", #7, "#8", #9, "#1", 1)}%
+\newcommand{\addTableTwice}[5][]{%
+    \directlua{excel_utils.getCellValuesTwice("#2", "#3", "#4", "#5", "#1", 1)}%
 }
 
 % plots values of two areas, if all fields contain values
-\newcommand{\addPlotTwice}[9][]{%
-    \directlua{excel_utils.getCellValuesTwice("#2", #3, "#4", #5, "#6", #7, "#8", #9, "#1", 2)}%
+\newcommand{\addPlotTwice}[5][]{%
+    \directlua{excel_utils.getCellValuesTwice("#2", "#3", "#4", "#5", "#1", 2)}%
 }
 
 % makes debugging a lot easier as not closed excel files could cause errors 

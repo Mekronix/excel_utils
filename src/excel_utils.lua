@@ -84,7 +84,6 @@ local function extractBracketsContent(inputString)
     end
 end
 
-
 local function extractFileNameFromPath(path)
     return path:match("[^\\/]+$")
 end
@@ -145,24 +144,18 @@ local function getPath(pathIndex, functionName)
     return index
 end
 
-local function getExcelIndex(input, functionName)
-    if input == nil then
-        logExcelError('A column index is missing or wrong', functionName)
+local function extractCellPosition(cell)
+    local columnPart = cell:match("%a+")
+    local rowPart = cell:match("%d+")
+    
+    local columnNumber = 0
+    for i = 1, #columnPart do
+        columnNumber = columnNumber * 26 + (string.byte(columnPart:sub(i,i)) - string.byte("A") + 1)
     end
-
-    local num = tonumber(input)
-
-    if num ~= nil then
-        return num
-    else
-        local index = 0
-        for i = 1, #input do
-            local char = input:sub(i, i)
-            local value = string.byte(char) - string.byte("A") + 1
-            index = index * 26 + value
-        end
-        return index
-    end
+    
+    local rowNumber = tonumber(rowPart)
+    
+    return columnNumber, rowNumber
 end
 
 -- methods which can be accessed from file
@@ -183,12 +176,12 @@ local function getAllPaths()
     end
 end
 
-local function getCellValue(column, row, option)
+local function getCellValue(cell, option)
     if not ShouldCreateOutput then return end
 
     local pathIndex, sheet = extractOptionalValues(option)
 
-    column = getExcelIndex(column, 'getCellValue')
+    local column, row = extractCellPosition(cell)
 
     local path = getPath(pathIndex, 'getCellValue')
     local excel, worksheet, shouldClose = getWorksheet(path, sheet, 'getCellValue')
@@ -209,15 +202,15 @@ local function getCellValue(column, row, option)
     end
 end
 
-local function getCellValues(startCol, startRow, endCol, endRow, option, tableOrPlot)
+local function getCellValues(startCell, endCell, option, tableOrPlot)
     if not ShouldCreateOutput then return end
     
     local plotOption
     plotOption, option = extractBracketsContent(option)
     local pathIndex, sheet = extractOptionalValues(option)
     
-    startCol = getExcelIndex(startCol, 'getCellValues')
-    endCol = getExcelIndex(endCol, 'getCellValues')
+    local startCol, startRow = extractCellPosition(startCell)
+    local endCol, endRow = extractCellPosition(endCell)
 
     local path = getPath(pathIndex, 'getCellValues')
     local excel, worksheet, shouldClose = getWorksheet(path, sheet, 'getCellValues')
@@ -282,17 +275,17 @@ local function getCellValues(startCol, startRow, endCol, endRow, option, tableOr
     end
 end
 
-local function getCellValuesTwice(firstStartCol, firstStartRow, firstEndCol, firstEndRow, secondStartCol, secondStartRow, secondEndCol, secondEndRow, option, tableOrPlot)
+local function getCellValuesTwice(firstStartCell, firstEndCell, secondStartCell, secondEndCell, option, tableOrPlot)
     if not ShouldCreateOutput then return end
     
     local plotOption
     plotOption, option = extractBracketsContent(option)
     local pathIndex, sheet = extractOptionalValues(option)
 
-    firstStartCol = getExcelIndex(firstStartCol, 'getCellValuesTwice')
-    firstEndCol = getExcelIndex(firstEndCol, 'getCellValuesTwice')
-    secondStartCol = getExcelIndex(secondStartCol, 'getCellValuesTwice')
-    secondEndCol = getExcelIndex(secondEndCol, 'getCellValuesTwice')
+    local firstStartCol, firstStartRow = extractCellPosition(firstStartCell)
+    local firstEndCol, firstEndRow = extractCellPosition(firstEndCell)
+    local secondStartCol, secondStartRow = extractCellPosition(secondStartCell)
+    local secondEndCol, secondEndRow = extractCellPosition(secondEndCell)
 
     local path = getPath(pathIndex, 'getCellValuesTwice')
     local excel, worksheet, shouldClose = getWorksheet(path, sheet, 'getCellValuesTwice')

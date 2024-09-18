@@ -12,14 +12,14 @@
 
 \begin{document}
     \getAllPaths
-    \getCellValue[path=D:/OneDrive/Dokumente/UNI/WG Wien/Ausgaben WG.xlsx, worksheet=Mai 2024]{C}{5}
+    \getCellValue[path=D:/OneDrive/Dokumente/UNI/WG Wien/Ausgaben WG.xlsx, worksheet=Mai 2024]{C5}
 
     \begin{tabular}{c c c c c c}
-        \addTableTwice[worksheet=Juni 2024]{7}{5}{8}{21}{10}{5}{11}{21}
+        \addTableTwice[worksheet=Juni 2024]{G5}{H21}{J5}{K21}
     \end{tabular}
 
     \begin{tabular}{c|c|c|c}
-        \addTable{2}{2}{5}{5}
+        \addTable{B2}{E5}
     \end{tabular}
     
     \begin{tikzpicture}
@@ -34,8 +34,9 @@
             ymajorgrids = true,
             xlabel = Test,
             xmin = 0]
-            \addPlot[worksheet=Juni 2024,option=!red,mark=*!]{G}{5}{G}{21}
-            \addPlotTwice[worksheet=Juni 2024,option=!green,mark=*!]{A}{5}{A}{21}{J}{5}{J}{21}
+            \addPlot[worksheet=Juni 2024,option=!red,mark=*!]{G5}{G21}
+            \addPlotTwice[worksheet=Juni 2024,option=!green,mark=*!]{A5}{A21}{J5}{J21}
+            
             \addlegendentry{\(Testplot\)}
             \addlegendentry{\(Testplot\)}
         \end{axis}
