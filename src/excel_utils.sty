@@ -3,7 +3,11 @@
 \RequirePackage{luacode}
 
 \begin{luacode*}
+    local sty_path = kpse.find_file("excel_utils.sty")
+    local dir = sty_path:match("(.*)[/\\]")
+    package.path = package.path .. ";" .. dir
     excel_utils = require('excel_utils')
+    excel_utils.loadLuacom(dir)
 \end{luacode*}
 
 \DeclareOption{noOutput}{%

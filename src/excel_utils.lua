@@ -1,4 +1,7 @@
-package.loadlib("../lib/luacom.dll", "luacom_openlib")()   -- or use require, have to reference dll correctly
+local function loadLuacom(pathOfCallerDir)
+    package.loadlib(pathOfCallerDir .. "/../lib/luacom.dll", "luacom_openlib")()
+    -- or use require('luacom') 
+end
 
 -- helper functions
 
@@ -366,6 +369,7 @@ local function getCellValuesTwice(firstStartCol, firstStartRow, firstEndCol, fir
 end
 
 return {
+    loadLuacom = loadLuacom,                -- loads luacom with certain path
     setNoOutput = setNoOutput,              -- excel_utils wont create output
     setExcelVisible = setExcelVisible,      -- make the opening of the excel files visible
     addPath = addPath,                      -- adds path to list
