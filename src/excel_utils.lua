@@ -7,6 +7,8 @@ end
 
 ExcelVisibility = false
 ShouldCreateOutput = true
+ForceClose = false
+RemainOpen = false
 
 local function trim(s)
     return tostring(s):match("^%s*(.-)%s*$")
@@ -45,8 +47,22 @@ local function extractOptionalValues(value)
     return keyValuePairs['path'] or "", keyValuePairs['worksheet'] or ""
 end
 
+-- opened instances of excel regardless of an excel already being opened before 
+-- running LaTeX are going to be closed
+local function setForceClose()
+    ForceClose = true
+end
+
+local function setRemainOpen()
+    if ExcelVisibility then
+        RemainOpen = true
+    end
+end
+
 local function setExcelVisible()
-    ExcelVisibility = true
+    if not RemainOpen then
+        ExcelVisibility = true
+    end
 end
 
 local function setNoOutput()
@@ -119,17 +135,17 @@ local function getWorksheet(path, sheet, functionName)
             local workbook = excel.Workbooks(i)
             if extractFileNameFromPath(workbook.FullName) == fileName then
                 print('An instance of "' .. fileName .. '" is already initiated and will be used.')
-                return excel, getWorkSheetFromWorkbook(workbook, sheetName, functionName), false
+                return excel, getWorkSheetFromWorkbook(workbook, sheetName, functionName), ForceClose
             end
         end
     end
 
-    excel = luacom.CreateObject("Excel.Application")
-    excel.Visible = ExcelVisibility
+    excel = luacom.CreateObject('Excel.Application')
 
+    excel.Visible = ExcelVisibility
     local workbook = excel.Workbooks:Open(path)
 
-    return excel, getWorkSheetFromWorkbook(workbook, sheetName, functionName), true
+    return excel, getWorkSheetFromWorkbook(workbook, sheetName, functionName), not RemainOpen or ForceClose
 end
 
 local function getPath(pathIndex, functionName)
@@ -142,20 +158,6 @@ local function getPath(pathIndex, functionName)
     end
 
     return index
-end
-
-local function extractCellPosition(cell)
-    local columnPart = cell:match("%a+")
-    local rowPart = cell:match("%d+")
-    
-    local columnNumber = 0
-    for i = 1, #columnPart do
-        columnNumber = columnNumber * 26 + (string.byte(columnPart:sub(i,i)) - string.byte("A") + 1)
-    end
-    
-    local rowNumber = tonumber(rowPart)
-    
-    return columnNumber, rowNumber
 end
 
 -- methods which can be accessed from file
@@ -181,17 +183,9 @@ local function getCellValue(cell, option)
 
     local pathIndex, sheet = extractOptionalValues(option)
 
-    local column, row = extractCellPosition(cell)
-
     local path = getPath(pathIndex, 'getCellValue')
     local excel, worksheet, shouldClose = getWorksheet(path, sheet, 'getCellValue')
-    local cellValue = worksheet.Cells(row, column).Value2
-
-    if cellValue == nil then
-        cellValue = ""
-    else
-        cellValue = trim(cellValue)
-    end
+    local cellValue = worksheet:Range(cell .. ':' .. cell).Value2 or ""
 
     tex.sprint(cellValue)
     print('Cell Value: ' .. cellValue)
@@ -199,6 +193,7 @@ local function getCellValue(cell, option)
     if shouldClose then
         excel:Quit()
         excel = nil
+        collectgarbage()
     end
 end
 
@@ -208,9 +203,6 @@ local function getCellValues(startCell, endCell, option, tableOrPlot)
     local plotOption
     plotOption, option = extractBracketsContent(option)
     local pathIndex, sheet = extractOptionalValues(option)
-    
-    local startCol, startRow = extractCellPosition(startCell)
-    local endCol, endRow = extractCellPosition(endCell)
 
     local path = getPath(pathIndex, 'getCellValues')
     local excel, worksheet, shouldClose = getWorksheet(path, sheet, 'getCellValues')
@@ -230,16 +222,14 @@ local function getCellValues(startCell, endCell, option, tableOrPlot)
 
     local allRows = {}
     local i = 0
-    for row = startRow, endRow do
+
+    local data = worksheet:Range(startCell .. ':' .. endCell)
+
+    for row = 1, data.Rows.Count do
         local rowValues = {}
-        for col = startCol, endCol do
-            local cellValue = worksheet.Cells(row, col).Value2
-            if cellValue == nil then
-                cellValue = ""
-            else
-                cellValue = trim(cellValue)
-            end
-            if tableOrPlot == 2 and startCol == endCol then
+        for col = 1, data.Columns.Count do
+            local cellValue = data.Cells(row, col).Value2 or ""
+            if tableOrPlot == 2 and data.Columns.Count == 1 then
                 if cellValue == "" then
                     goto continue
                 end
@@ -272,6 +262,7 @@ local function getCellValues(startCell, endCell, option, tableOrPlot)
     if shouldClose then
         excel:Quit()
         excel = nil
+        collectgarbage()
     end
 end
 
@@ -281,11 +272,6 @@ local function getCellValuesTwice(firstStartCell, firstEndCell, secondStartCell,
     local plotOption
     plotOption, option = extractBracketsContent(option)
     local pathIndex, sheet = extractOptionalValues(option)
-
-    local firstStartCol, firstStartRow = extractCellPosition(firstStartCell)
-    local firstEndCol, firstEndRow = extractCellPosition(firstEndCell)
-    local secondStartCol, secondStartRow = extractCellPosition(secondStartCell)
-    local secondEndCol, secondEndRow = extractCellPosition(secondEndCell)
 
     local path = getPath(pathIndex, 'getCellValuesTwice')
     local excel, worksheet, shouldClose = getWorksheet(path, sheet, 'getCellValuesTwice')
@@ -303,35 +289,28 @@ local function getCellValuesTwice(firstStartCell, firstEndCell, secondStartCell,
         print('\\addplot ' .. '[' .. plotOption .. ']' .. 'coordinates {')
     end
     
+    local firstData = worksheet:Range(firstStartCell .. ':' .. firstEndCell)
+    local secondData = worksheet:Range(secondStartCell .. ':' .. secondEndCell)
+
     -- Ensure both areas have the same number of rows
-    if (firstEndRow - firstStartRow) ~= (secondEndRow - secondStartRow) then
+    if firstData.Rows.Count ~= secondData.Rows.Count then
         logExcelError('The two areas do not have the same amount of rows', 'getCellValuesTwice')
     end
 
     local allRows = {}
-    for row = firstStartRow, firstEndRow do
+    for row = 1, firstData.Rows.Count do
         local rowValues = {}
-        for col = firstStartCol, firstEndCol do
-            local cellValue = worksheet.Cells(row, col).Value2
-            if cellValue == nil then
-                if tableOrPlot == 2 then
-                    goto continue
-                end
-                cellValue = ""
-            else
-                cellValue = trim(cellValue)
+        for col = 1, firstData.Columns.Count do
+            local cellValue = firstData.Cells(row, col).Value2 or ""
+            if tableOrPlot == 2 and cellValue == "" then
+                goto continue
             end
             table.insert(rowValues, tostring(cellValue))
         end
-        for col = secondStartCol, secondEndCol do
-            local cellValue = worksheet.Cells(row, col).Value2
-            if cellValue == nil then
-                if tableOrPlot == 2 then
-                    goto continue
-                end
-                cellValue = ""
-            else
-                cellValue = trim(cellValue)
+        for col = 1, secondData.Columns.Count do
+            local cellValue = secondData.Cells(row, col).Value2 or ""
+            if tableOrPlot == 2 and cellValue == "" then
+                goto continue
             end
             table.insert(rowValues, tostring(cellValue))
         end
@@ -358,10 +337,13 @@ local function getCellValuesTwice(firstStartCell, firstEndCell, secondStartCell,
     if shouldClose then
         excel:Quit()
         excel = nil
+        collectgarbage()
     end
 end
 
 return {
+    setForceClose = setForceClose,          -- closes all used instances of excel
+    setRemainOpen = setRemainOpen,          -- excel remains open after being called
     loadLuacom = loadLuacom,                -- loads luacom with certain path
     setNoOutput = setNoOutput,              -- excel_utils wont create output
     setExcelVisible = setExcelVisible,      -- make the opening of the excel files visible

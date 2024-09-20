@@ -65,4 +65,21 @@
     \directlua{excel_utils.setExcelVisible()}
 }
 
+% all instances are going to be closed
+\newcommand{\forceClose}{
+    \directlua{excel_utils.setForceClose()}
+}
+
+% newly opened instances will remain opened -- not working
+% problems: GetObject always gets the first excel object and there is no way of iterating 
+% over each of the objects. Therefore when not closing a CreateObject I can not access, either 
+% the newly created objects or the already opened excel files when running the code again. In 
+% addition manually opened files are stored in a different list and can not access the two lists
+% separately. 
+% One idea of solving this would be to create one global excel variable and add all existing 
+% excel instances to it closing all existing.
+\newcommand{\remainOpen}{
+    %\directlua{excel_utils.setRemainOpen()}
+}
+
 \endinput

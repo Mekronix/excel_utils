@@ -9,17 +9,19 @@
 \addPath{D:/OneDrive/Dokumente/UNI/WG Wien/Ausgaben WG.xlsx}
 \addPath{D:/OneDrive/Dokumente/UNI/WG Wien/Utensilien und Gegenstände.xlsx}
 \openExcelVisible % makes excel opening visible
+%\remainOpen - not working
+\forceClose
 
 \begin{document}
     \getAllPaths
     \getCellValue[path=D:/OneDrive/Dokumente/UNI/WG Wien/Ausgaben WG.xlsx, worksheet=Mai 2024]{C5}
 
-    \begin{tabular}{c c c c c c}
+    \begin{tabular}{c c c c}
         \addTableTwice[worksheet=Juni 2024]{G5}{H21}{J5}{K21}
     \end{tabular}
 
     \begin{tabular}{c|c|c|c}
-        \addTable{B2}{E5}
+        \addTable[path=2]{B2}{E23}
     \end{tabular}
     
     \begin{tikzpicture}
@@ -36,10 +38,9 @@
             xmin = 0]
             \addPlot[worksheet=Juni 2024,option=!red,mark=*!]{G5}{G21}
             \addPlotTwice[worksheet=Juni 2024,option=!green,mark=*!]{A5}{A21}{J5}{J21}
-            
+
             \addlegendentry{\(Testplot\)}
             \addlegendentry{\(Testplot\)}
         \end{axis}
     \end{tikzpicture}
-    
 \end{document}
